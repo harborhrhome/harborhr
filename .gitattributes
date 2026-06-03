@@ -1,2 +1,984 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0e1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HR Home">
+<title>🏢 HR Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e1117;--bg2:#161b27;--bg3:#1c2333;
+  --or:#f5a623;--or2:#ffc04d;
+  --gr:#22c55e;--rd:#ef4444;--bl:#3b82f6;--pu:#a855f7;--cy:#06b6d4;
+  --tx:#e8eaf0;--tx2:#8b95a8;
+  --bo:rgba(245,166,35,.18);--bo2:rgba(255,255,255,.07);
+  --r:13px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column;height:100dvh;}
+
+/* HDR */
+.hdr{background:var(--bg2);border-bottom:1px solid var(--bo2);padding:10px 15px 9px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hdr-l{display:flex;align-items:center;gap:9px;}
+.hdr-ico{width:33px;height:33px;background:linear-gradient(135deg,var(--or),var(--or2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.hdr-name{font-size:14px;font-weight:700;}
+.hdr-sub{font-size:9px;color:var(--or);letter-spacing:1.5px;text-transform:uppercase;display:block;}
+.hdr-pill{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--rd);font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;cursor:pointer;display:none;}
+
+/* TABS */
+.tabs{background:var(--bg2);border-bottom:1px solid var(--bo2);display:flex;flex-shrink:0;}
+.tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--tx2);font-family:'Noto Sans SC',sans-serif;font-size:10px;font-weight:500;padding:7px 2px 8px;cursor:pointer;transition:all .2s;}
+.tab.on{color:var(--or);border-bottom-color:var(--or);}
+
+/* AREA */
+.area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.pg{display:none;padding-bottom:80px;}
+.pg.on{display:block;}
+
+/* GENERIC */
+.card{background:var(--bg2);border:1px solid var(--bo2);border-radius:var(--r);margin:10px 13px 0;}
+.ci{padding:13px 14px;}
+.sh{display:flex;align-items:center;justify-content:space-between;padding:14px 13px 7px;}
+.st{font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:1.2px;text-transform:uppercase;}
+.inp{background:var(--bg3);border:1px solid var(--bo2);border-radius:10px;padding:9px 12px;color:var(--tx);font-family:'Noto Sans SC',sans-serif;font-size:13px;outline:none;width:100%;}
+.inp:focus{border-color:var(--or);}
+.lbl{font-size:10px;color:var(--tx2);margin-bottom:4px;display:block;}
+.row{display:flex;gap:8px;}
+.row .fc{flex:1;}
+.btn{border:none;border-radius:10px;padding:11px;font-family:'Noto Sans SC',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;display:block;transition:all .15s;}
+.btn-or{background:var(--or);color:#1a0e00;}
+.btn-ghost{background:var(--bg3);border:1px solid var(--bo2);color:var(--tx2);}
+.btn-rd{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:var(--rd);}
+.btn:active{transform:scale(.97);}
+
+/* BADGE */
+.bd{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;}
+.b-ok{background:rgba(34,197,94,.15);color:var(--gr);border:1px solid rgba(34,197,94,.25);}
+.b-warn{background:rgba(245,166,35,.15);color:var(--or);border:1px solid var(--bo);}
+.b-exp{background:rgba(239,68,68,.15);color:var(--rd);border:1px solid rgba(239,68,68,.25);}
+.b-bl{background:rgba(59,130,246,.15);color:var(--bl);border:1px solid rgba(59,130,246,.25);}
+.b-pu{background:rgba(168,85,247,.15);color:var(--pu);border:1px solid rgba(168,85,247,.25);}
+.b-gr{background:rgba(139,149,168,.12);color:var(--tx2);border:1px solid var(--bo2);}
+.b-cy{background:rgba(6,182,212,.15);color:var(--cy);border:1px solid rgba(6,182,212,.25);}
+
+/* SEARCH */
+.sbar{margin:10px 13px 7px;background:var(--bg3);border:1px solid var(--bo2);border-radius:22px;padding:9px 14px;display:flex;align-items:center;gap:7px;}
+.sbar input{flex:1;background:none;border:none;color:var(--tx);font-family:'Noto Sans SC',sans-serif;font-size:13px;outline:none;}
+.sbar input::placeholder{color:var(--tx2);}
+
+/* FILTER */
+.ftabs{display:flex;gap:5px;padding:0 13px 8px;flex-wrap:wrap;}
+.ftab{background:var(--bg2);border:1px solid var(--bo2);color:var(--tx2);font-family:'Noto Sans SC',sans-serif;font-size:10px;padding:4px 11px;border-radius:20px;cursor:pointer;transition:all .15s;}
+.ftab.on{background:var(--or);color:#1a0e00;border-color:var(--or);font-weight:700;}
+
+/* WORKER CARD */
+.wc{background:var(--bg2);border:1px solid var(--bo2);border-radius:var(--r);margin:0 13px 9px;overflow:hidden;transition:border-color .2s;}
+.wc.ok{border-color:rgba(34,197,94,.25);}
+.wc.warn{border-color:rgba(245,166,35,.35);}
+.wc.exp{border-color:rgba(239,68,68,.4);}
+.wc.debt{border-color:rgba(239,68,68,.5);}
+.wh{display:flex;align-items:center;gap:10px;padding:11px 13px;cursor:pointer;}
+.wa{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--or),#b37410);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#1a0e00;flex-shrink:0;}
+.wi{flex:1;min-width:0;}
+.wn{font-size:13px;font-weight:700;}
+.wm{font-size:10px;color:var(--tx2);margin-top:2px;}
+.wb{display:none;border-top:1px solid var(--bo2);}
+.wb.open{display:block;}
+
+/* BILLING SUMMARY BAR */
+.bill-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--bg3);border-bottom:1px solid var(--bo2);}
+.bill-bar-item{text-align:center;}
+.bill-bar-label{font-size:9px;color:var(--tx2);letter-spacing:.5px;text-transform:uppercase;}
+.bill-bar-val{font-size:14px;font-weight:700;margin-top:2px;}
+
+/* INVOICE LIST */
+.inv-wrap{padding:10px 13px;}
+.inv-item{background:var(--bg3);border:1px solid var(--bo2);border-radius:10px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.inv-item.paid{opacity:.65;}
+.inv-left{flex:1;min-width:0;}
+.inv-name{font-size:12px;font-weight:600;}
+.inv-date{font-size:10px;color:var(--tx2);margin-top:2px;}
+.inv-note{font-size:10px;color:var(--tx2);margin-top:2px;}
+.inv-right{text-align:right;flex-shrink:0;}
+.inv-amt{font-size:14px;font-weight:700;color:var(--or);}
+.inv-paid{font-size:10px;color:var(--gr);margin-top:2px;}
+.inv-bal{font-size:10px;color:var(--rd);margin-top:1px;font-weight:600;}
+.inv-actions{display:flex;gap:5px;margin-top:5px;justify-content:flex-end;}
+.ia{background:none;border:none;font-size:12px;cursor:pointer;padding:2px 4px;border-radius:5px;}
+.ia.pay{background:rgba(34,197,94,.12);color:var(--gr);font-size:11px;padding:3px 9px;border-radius:8px;font-family:'Noto Sans SC',sans-serif;font-weight:600;}
+.ia.del{color:var(--rd);}
+
+/* PAYMENT LIST */
+.pay-item{background:var(--bg3);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;}
+.pay-left{display:flex;align-items:center;gap:8px;}
+.pay-ico{font-size:18px;}
+.pay-label{font-size:12px;font-weight:600;color:var(--gr);}
+.pay-meta{font-size:10px;color:var(--tx2);margin-top:1px;}
+.pay-amt{font-size:14px;font-weight:700;color:var(--gr);}
+
+/* ADD INVOICE FORM */
+.fee-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px;}
+.fee-btn{background:var(--bg3);border:1px solid var(--bo2);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s;font-family:'Noto Sans SC',sans-serif;}
+.fee-btn.sel{background:rgba(245,166,35,.15);border-color:var(--or);}
+.fee-btn:active{transform:scale(.96);}
+.fee-btn-name{font-size:11px;font-weight:600;color:var(--tx);}
+.fee-btn-price{font-size:12px;font-weight:700;color:var(--or);margin-top:2px;}
+
+/* W ACTIONS */
+.wacts{display:flex;gap:6px;padding:10px 13px;}
+.wact{flex:1;padding:8px 4px;border-radius:9px;text-align:center;text-decoration:none;font-family:'Noto Sans SC',sans-serif;font-size:11px;font-weight:600;cursor:pointer;border:none;display:block;transition:all .15s;}
+.wa-call{background:rgba(34,197,94,.12);color:var(--gr);border:1px solid rgba(34,197,94,.25);}
+.wa-wa{background:rgba(37,211,102,.12);color:#25d366;border:1px solid rgba(37,211,102,.25);}
+.wa-inv{background:var(--or);color:#1a0e00;}
+.wa-edit{background:var(--bg3);color:var(--tx2);border:1px solid var(--bo2);}
+.wa-del{background:rgba(239,68,68,.1);color:var(--rd);border:1px solid rgba(239,68,68,.2);}
+.wact:active{transform:scale(.96);}
+
+/* WORKER GRID */
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:11px 13px;}
+.wfield{}.wflabel{font-size:9px;color:var(--tx2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;}
+.wfval{font-size:12px;font-weight:600;}
+.wfval.gold{color:var(--or);}
+
+/* DOC ITEMS */
+.doc-list{padding:0 13px 10px;}
+.doc-title{font-size:9px;color:var(--tx2);letter-spacing:1px;text-transform:uppercase;padding:8px 0 6px;}
+.doc-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:5px;}
+.doc-l{display:flex;align-items:center;gap:8px;}
+.doc-ic{font-size:15px;}
+.doc-dn{font-size:12px;font-weight:600;}
+.doc-de{font-size:10px;color:var(--tx2);}
+
+/* ALERT CARDS */
+.ac{background:var(--bg2);border-left:3px solid var(--rd);border-radius:var(--r);margin:0 13px 9px;padding:12px 14px;display:flex;gap:10px;}
+.ac.warn{border-left-color:var(--or);}
+.ac.debt{border-left-color:var(--cy);}
+.ac-ico{font-size:19px;flex-shrink:0;}
+.ac-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.ac-desc{font-size:11px;color:var(--tx2);line-height:1.6;}
+.ac-fee{font-size:11px;color:var(--or);margin-top:4px;font-weight:600;}
+
+/* FEE TABLE */
+.fee-item{background:var(--bg2);border:1px solid var(--bo2);border-radius:var(--r);padding:12px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.fi-info{flex:1;}
+.fi-name{font-size:13px;font-weight:600;}
+.fi-desc{font-size:10px;color:var(--tx2);margin-top:3px;line-height:1.5;}
+.fi-price{font-size:15px;font-weight:700;color:var(--or);white-space:nowrap;}
+
+/* PERMIT CALC */
+.cc{background:var(--bg2);border:1px solid var(--bo2);border-radius:var(--r);padding:14px;margin:0 13px;}
+.cc-title{font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;}
+.cr{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bo2);font-size:12px;}
+.cr:last-of-type{border-bottom:none;}
+.cr.tot{font-weight:700;font-size:14px;border-top:1px solid var(--bo);padding-top:10px;margin-top:4px;}
+.cr.tot .cv{color:var(--or);}
+.cv{font-weight:600;}
+.ctog{display:flex;gap:6px;margin-bottom:10px;}
+.ctb{flex:1;padding:8px;border-radius:9px;font-family:'Noto Sans SC',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--bo2);background:var(--bg3);color:var(--tx2);transition:all .15s;}
+.ctb.on{background:var(--or);color:#1a0e00;border-color:var(--or);}
+
+/* STATS */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 13px;}
+.sc{background:var(--bg2);border:1px solid var(--bo2);border-radius:var(--r);padding:13px;}
+.sc-lbl{font-size:10px;color:var(--tx2);margin-bottom:5px;}
+.sc-val{font-size:20px;font-weight:800;}
+
+/* CHAT */
+.cw{padding:10px 13px 0;display:flex;flex-direction:column;gap:7px;min-height:160px;}
+.msg{max-width:84%;padding:9px 12px;border-radius:15px;font-size:13px;line-height:1.5;animation:mIn .22s ease;}
+@keyframes mIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.bot{background:var(--bg3);border:1px solid var(--bo2);border-bottom-left-radius:4px;align-self:flex-start;}
+.msg.user{background:var(--or);color:#1a0e00;font-weight:600;border-bottom-right-radius:4px;align-self:flex-end;}
+.msg-t{font-size:9px;color:var(--tx2);margin-top:3px;}
+.msg.user .msg-t{color:rgba(26,14,0,.5);text-align:right;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;}
+.chip{background:var(--bg2);border:1px solid var(--bo2);color:var(--tx);font-size:11px;padding:5px 10px;border-radius:20px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;transition:all .12s;}
+.chip:active{background:var(--or);color:#1a0e00;border-color:var(--or);}
+.typing{display:inline-flex;align-items:center;gap:3px;padding:2px 0;}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--tx2);animation:db 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:.2s;}
+.typing span:nth-child(3){animation-delay:.4s;}
+@keyframes db{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1);opacity:1}}
+.ibar{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--bo2);padding:9px 13px 13px;display:flex;gap:7px;align-items:center;z-index:50;}
+.ibar input{flex:1;background:var(--bg3);border:1px solid var(--bo2);border-radius:22px;padding:9px 14px;color:var(--tx);font-family:'Noto Sans SC',sans-serif;font-size:13px;outline:none;}
+.ibar input:focus{border-color:var(--or);}
+.send{width:38px;height:38px;border-radius:50%;background:var(--or);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.send:active{transform:scale(.9);}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s;}
+.mo.open{opacity:1;pointer-events:all;}
+.mb{background:var(--bg2);border:1px solid var(--bo2);border-radius:20px 20px 0 0;width:100%;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1);padding-bottom:36px;}
+.mo.open .mb{transform:translateY(0);}
+.mh{width:36px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin:12px auto 14px;}
+.mt{font-size:16px;font-weight:700;padding:0 18px 12px;}
+.mbody{padding:0 18px;display:flex;flex-direction:column;gap:10px;}
+.mbtns{display:flex;gap:8px;margin-top:4px;}
+.mbtn{flex:1;padding:12px;border-radius:11px;cursor:pointer;font-family:'Noto Sans SC',sans-serif;font-size:13px;font-weight:600;border:1px solid var(--bo2);background:var(--bg3);color:var(--tx2);}
+.mbtn.pri{background:var(--or);color:#1a0e00;border-color:var(--or);}
+.mbtn:active{transform:scale(.97);}
+.add-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 13px;padding:12px;background:rgba(245,166,35,.06);border:1px dashed var(--bo);border-radius:var(--r);cursor:pointer;color:var(--or);font-size:12px;font-weight:600;}
+
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:rgba(245,166,35,.25);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="hdr-ico">🏢</div>
+    <div>
+      <span class="hdr-name">HR Home</span>
+      <span class="hdr-sub">外劳人力资源</span>
+    </div>
+  </div>
+  <div id="hpill" class="hdr-pill" onclick="goTab(2)">⚠️ 0</div>
+</div>
+
+<div class="tabs">
+  <button class="tab on"  onclick="goTab(0)">记账</button>
+  <button class="tab"     onclick="goTab(1)">👷 外劳</button>
+  <button class="tab"     onclick="goTab(2)">⚠️ 提醒</button>
+  <button class="tab"     onclick="goTab(3)">💰 收费</button>
+  <button class="tab"     onclick="goTab(4)">📊 统计</button>
+</div>
+
+<div class="area" id="area">
+
+  <!-- PAGE 0: 记账 -->
+  <div class="pg on" id="pg0">
+    <div class="cw" id="cw"></div>
+  </div>
+
+  <!-- PAGE 1: 外劳档案 -->
+  <div class="pg" id="pg1">
+    <div class="sbar">
+      <span style="font-size:14px;color:var(--tx2)">🔍</span>
+      <input id="ws" placeholder="搜索外劳姓名..." oninput="renderW()">
+    </div>
+    <div class="ftabs">
+      <button class="ftab on" onclick="wf('all',this)">全部</button>
+      <button class="ftab" onclick="wf('debt',this)">💸 有欠款</button>
+      <button class="ftab" onclick="wf('exp',this)">⚠️ 文件过期</button>
+      <button class="ftab" onclick="wf('warn',this)">⏰ 将到期</button>
+    </div>
+    <div id="wCards"></div>
+    <div class="add-row" onclick="openWForm(null)">➕ 添加新外劳</div>
+    <div style="height:10px"></div>
+  </div>
+
+  <!-- PAGE 2: 提醒 -->
+  <div class="pg" id="pg2">
+    <div class="sh"><span class="st">需要处理的事项</span></div>
+    <div id="alertList"></div>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- PAGE 3: 收费表 -->
+  <div class="pg" id="pg3">
+    <div class="sh"><span class="st">特别项目收费</span></div>
+    <div style="padding:0 13px">
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">逾期前3天</div><div class="fi-desc">ESP 处理费</div></div><div class="fi-price">RM 150</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">逾期第1–90天</div><div class="fi-desc">ESP RM50/天</div></div><div class="fi-price">RM 50/天</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">逾期超过90天</div><div class="fi-desc">ESP 固定费用</div></div><div class="fi-price">RM 3,100 + 1,500</div></div>
+    </div>
+    <div class="sh"><span class="st">FOMEMA</span></div>
+    <div style="padding:0 13px">
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">单一（血/X-Ray）自找协助</div></div><div class="fi-price">RM 750</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">单一 公司找协助</div></div><div class="fi-price">RM 1,000</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">全套 自找协助</div></div><div class="fi-price">RM 1,500</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">全套 公司找协助</div></div><div class="fi-price">RM 2,000</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">FOMEMA 漂白</div></div><div class="fi-price">RM 3,500</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">FOMEMA 外来</div></div><div class="fi-price">RM 2,700</div></div>
+    </div>
+    <div class="sh"><span class="st">其他项目</span></div>
+    <div style="padding:0 13px">
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">部门相关文件</div></div><div class="fi-price">RM 100</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">亲属相关文件</div></div><div class="fi-price">RM 300</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">更新家属证</div></div><div class="fi-price">RM 350</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">CIDB 注册</div></div><div class="fi-price">RM 450</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">CIDB 更新</div></div><div class="fi-price">RM 300</div></div>
+      <div class="fee-item"><div class="fi-info"><div class="fi-name">KWSP</div></div><div class="fi-price">RM 1,000</div></div>
+    </div>
+    <div class="sh"><span class="st">准证更新费用计算</span></div>
+    <div class="cc" style="margin-bottom:0">
+      <div class="ctog">
+        <button class="ctb on" id="ca" onclick="setPT('AGRO')">AGRO</button>
+        <button class="ctb" id="co" onclick="setPT('OTHER')">Other</button>
+      </div>
+      <div class="cr"><span>Levy</span><span class="cv" id="pL">RM 845.00</span></div>
+      <div class="cr"><span>Visa</span><span class="cv">RM 205.00</span></div>
+      <div class="cr"><span>Insurance</span><span class="cv">RM 203.50</span></div>
+      <div class="cr"><span>FOMEMA</span><span class="cv">RM 250.00</span></div>
+      <div class="cr"><span>PERKESO</span><span class="cv">RM 350.00</span></div>
+      <div class="cr"><span>Subtotal</span><span class="cv" id="pS">RM 1,853.50</span></div>
+      <div class="cr"><span>SST (6%)</span><span class="cv" id="pST">RM 111.21</span></div>
+      <div class="cr tot"><span>JUMLAH</span><span class="cv" id="pT">RM 1,964.71</span></div>
+    </div>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- PAGE 4: 统计 -->
+  <div class="pg" id="pg4">
+    <div class="sh"><span class="st">总览</span></div>
+    <div class="sg">
+      <div class="sc"><div class="sc-lbl">👷 总外劳</div><div class="sc-val" id="stW">0</div></div>
+      <div class="sc"><div class="sc-lbl">💸 总应收</div><div class="sc-val" style="color:var(--or);font-size:16px" id="stR">RM0</div></div>
+      <div class="sc"><div class="sc-lbl">✅ 已收款</div><div class="sc-val" style="color:var(--gr);font-size:16px" id="stP">RM0</div></div>
+      <div class="sc"><div class="sc-lbl">⏳ 欠款</div><div class="sc-val" style="color:var(--rd);font-size:16px" id="stD">RM0</div></div>
+    </div>
+    <div class="card"><div class="ci">
+      <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">💸 欠款外劳排行</div>
+      <div id="debtList"></div>
+    </div></div>
+    <div class="card"><div class="ci">
+      <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:10px">📋 文件到期概览（90天内）</div>
+      <div id="docExp"></div>
+    </div></div>
+    <div style="height:20px"></div>
+  </div>
+
+</div>
+
+<!-- INPUT BAR -->
+<div class="ibar" id="ibar">
+  <input id="cin" placeholder="收 Ahmad FOMEMA 1500 / 收 Ramu 现金 300..." onkeydown="if(event.key==='Enter')send()">
+  <button class="send" onclick="send()">↑</button>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="cMOut(event)">
+  <div class="mb" id="mbox">
+    <div class="mh"></div>
+    <div class="mt" id="mt"></div>
+    <div class="mbody" id="mbody"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════ STATE ═══════════
+const SK='hrHome_v3';
+let S = JSON.parse(localStorage.getItem(SK)||'null') || {
+  workers:[{
+    id:1, name:'Mohamed Nur', ini:'MN',
+    blood:'O+', phone:'0126741188',
+    passportNo:'A25649873', nationality:'Bangladesh',
+    location:'Bertam', sector:'AGRO', status:'active',
+    joinDate:'2024-01-01', notes:'',
+    docs:[
+      {name:'Pasport',   icon:'🛂', expiry:'2036-09-25'},
+      {name:'Permit',    icon:'📄', expiry:'2027-05-21'},
+      {name:'FOMEMA',    icon:'🏥', expiry:''},
+      {name:'Insurance', icon:'🛡️', expiry:''},
+    ],
+    projects:['FOMEMA SETTING'],
+    invoices:[],
+  },{
+    id:2, name:'Yeamin (Kwai Fatt)', ini:'YK',
+    blood:'', phone:'',
+    passportNo:'', nationality:'',
+    location:'Kwai Fatt', sector:'Other', status:'active',
+    joinDate:'2026-06-03', notes:'收据 #76780',
+    docs:[
+      {name:'Pasport',   icon:'🛂', expiry:''},
+      {name:'Permit',    icon:'📄', expiry:'2026-06-09'},
+      {name:'FOMEMA',    icon:'🏥', expiry:''},
+      {name:'Insurance', icon:'🛡️', expiry:''},
+    ],
+    projects:['Visa Extend'],
+    invoices:[{
+      id:201, service:'Visa Extend（准证延续）', amount:250,
+      date:'2026-06-03', note:'收据#76780 · 准证9 Jun到期',
+      payments:[],
+    }],
+  },{
+    id:3, name:'Anfa Akter', ini:'AA',
+    blood:'', phone:'',
+    passportNo:'', nationality:'',
+    location:'Kwai Fatt', sector:'Other', status:'active',
+    joinDate:'2026-06-03', notes:'收据 #76780',
+    docs:[
+      {name:'Pasport',   icon:'🛂', expiry:''},
+      {name:'Permit',    icon:'📄', expiry:'2026-06-09'},
+      {name:'FOMEMA',    icon:'🏥', expiry:''},
+      {name:'Insurance', icon:'🛡️', expiry:''},
+    ],
+    projects:['Visa Extend'],
+    invoices:[{
+      id:202, service:'Visa Extend（准证延续）', amount:250,
+      date:'2026-06-03', note:'收据#76780 · 准证9 Jun到期',
+      payments:[],
+    }],
+  }],
+  txns:[], nextId:300,
+};
+function sv(){ localStorage.setItem(SK,JSON.stringify(S)); }
+
+// ═══════════ FEE PRESETS ═══════════
+const FEES=[
+  {name:'更新准证 AGRO', price:1964.71, cat:'准证'},
+  {name:'更新准证 Other', price:2946.71, cat:'准证'},
+  {name:'ESP 逾期前3天', price:150, cat:'ESP'},
+  {name:'ESP 逾期/天', price:50, cat:'ESP'},
+  {name:'ESP 超90天', price:4600, cat:'ESP'},
+  {name:'FOMEMA 单一自找', price:750, cat:'FOMEMA'},
+  {name:'FOMEMA 单一公司找', price:1000, cat:'FOMEMA'},
+  {name:'FOMEMA 全套自找', price:1500, cat:'FOMEMA'},
+  {name:'FOMEMA 全套公司', price:2000, cat:'FOMEMA'},
+  {name:'FOMEMA 漂白', price:3500, cat:'FOMEMA'},
+  {name:'FOMEMA 外来', price:2700, cat:'FOMEMA'},
+  {name:'部门文件', price:100, cat:'文件'},
+  {name:'亲属文件', price:300, cat:'文件'},
+  {name:'更新家属证', price:350, cat:'文件'},
+  {name:'CIDB 注册', price:450, cat:'CIDB'},
+  {name:'CIDB 更新', price:300, cat:'CIDB'},
+  {name:'KWSP', price:1000, cat:'KWSP'},
+];
+
+// ═══════════ HELPERS ═══════════
+function now12(){ const d=new Date(); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; }
+function today(){ return new Date().toISOString().slice(0,10); }
+function daysUntil(e){ if(!e) return null; return Math.round((new Date(e)-new Date())/864e5); }
+function docSt(e){
+  if(!e) return 'none';
+  const d=daysUntil(e);
+  if(d<0) return 'exp';
+  if(d<120) return 'warn';
+  return 'ok';
+}
+function wSt(w){
+  if(w.status==='inactive') return 'inactive';
+  const ss=w.docs.map(d=>docSt(d.expiry));
+  if(ss.includes('exp')) return 'exp';
+  if(ss.includes('warn')) return 'warn';
+  return 'ok';
+}
+function invTotals(w){
+  let billed=0,paid=0;
+  (w.invoices||[]).forEach(inv=>{
+    billed+=inv.amount;
+    (inv.payments||[]).forEach(p=>{ paid+=p.amount; });
+  });
+  return {billed, paid, balance: billed-paid};
+}
+function fmt(n){ return 'RM '+n.toFixed(2); }
+
+// ═══════════ ALERT PILL ═══════════
+function updPill(){
+  let n=0;
+  S.workers.forEach(w=>{
+    const st=wSt(w);
+    if(st==='exp'||st==='warn') n++;
+    const {balance}=invTotals(w);
+    if(balance>0) n++;
+  });
+  const el=document.getElementById('hpill');
+  el.style.display=n?'block':'none';
+  el.textContent=`⚠️ ${n}`;
+}
+
+// ═══════════ TABS ═══════════
+let curTab=0;
+function goTab(i){
+  curTab=i;
+  document.querySelectorAll('.tab').forEach((b,j)=>b.classList.toggle('on',i===j));
+  document.querySelectorAll('.pg').forEach((p,j)=>p.classList.toggle('on',i===j));
+  document.getElementById('ibar').style.display=i===0?'flex':'none';
+  document.getElementById('area').scrollTop=0;
+  if(i===1) renderW();
+  if(i===2) renderAlerts();
+  if(i===4) renderStats();
+}
+
+// ═══════════ WORKERS ═══════════
+let wfMode='all';
+function wf(m,btn){ wfMode=m; document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderW(); }
+
+function renderW(){
+  const q=(document.getElementById('ws')||{value:''}).value.toLowerCase();
+  let ws=S.workers.filter(w=>w.name.toLowerCase().includes(q));
+  if(wfMode==='debt') ws=ws.filter(w=>invTotals(w).balance>0);
+  if(wfMode==='exp')  ws=ws.filter(w=>wSt(w)==='exp');
+  if(wfMode==='warn') ws=ws.filter(w=>wSt(w)==='warn');
+
+  const c=document.getElementById('wCards');
+  if(!ws.length){ c.innerHTML='<div style="text-align:center;padding:30px;color:var(--tx2);font-size:13px">暂无外劳</div>'; return; }
+
+  c.innerHTML=ws.map(w=>{
+    const st=wSt(w);
+    const totals=invTotals(w);
+    const hasDebt=totals.balance>0;
+    const cardCls=(hasDebt&&st==='ok')?'debt':st;
+    const bCls=st==='ok'?'b-ok':st==='exp'?'b-exp':st==='warn'?'b-warn':'b-gr';
+    const bTxt=st==='ok'?'在职':st==='exp'?'⚠️ 文件过期':st==='warn'?'⏰ 即将到期':'离职';
+    const tel=(w.phone||'').replace(/[^0-9]/g,'');
+
+    const docHtml=w.docs.map(d=>{
+      const ds=docSt(d.expiry);
+      const days=daysUntil(d.expiry);
+      const dc=ds==='ok'?'b-ok':ds==='warn'?'b-warn':ds==='exp'?'b-exp':'b-gr';
+      const dt=ds==='exp'?'已过期':ds==='warn'?`${days}天后`:ds==='ok'?'正常':'未设置';
+      return `<div class="doc-item"><div class="doc-l"><span class="doc-ic">${d.icon}</span>
+        <div><div class="doc-dn">${d.name}</div><div class="doc-de">${d.expiry||'未设置'}</div></div></div>
+        <span class="bd ${dc}">${dt}</span></div>`;
+    }).join('');
+
+    // Invoice summary
+    const invCount=(w.invoices||[]).length;
+    const pendingInvs=(w.invoices||[]).filter(inv=>{
+      const pd=(inv.payments||[]).reduce((s,p)=>s+p.amount,0);
+      return pd<inv.amount;
+    });
+
+    return `<div class="wc ${cardCls}" id="wc${w.id}">
+      <div class="wh" onclick="toggleW(${w.id})">
+        <div class="wa">${w.ini||w.name.slice(0,2).toUpperCase()}</div>
+        <div class="wi">
+          <div class="wn">${w.name}</div>
+          <div class="wm">${w.blood?'🩸'+w.blood+' · ':''}📱${w.phone||'-'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span class="bd ${bCls}">${bTxt}</span>
+          ${hasDebt?`<div style="font-size:11px;font-weight:700;color:var(--rd);margin-top:3px">欠 ${fmt(totals.balance)}</div>`:''}
+        </div>
+      </div>
+      <div class="wb" id="wb${w.id}">
+        <!-- BILLING BAR -->
+        <div class="bill-bar">
+          <div class="bill-bar-item"><div class="bill-bar-label">应收</div><div class="bill-bar-val" style="color:var(--or)">${fmt(totals.billed)}</div></div>
+          <div class="bill-bar-item"><div class="bill-bar-label">已收</div><div class="bill-bar-val" style="color:var(--gr)">${fmt(totals.paid)}</div></div>
+          <div class="bill-bar-item"><div class="bill-bar-label">欠款</div><div class="bill-bar-val" style="color:${totals.balance>0?'var(--rd)':'var(--gr)'}">${fmt(totals.balance)}</div></div>
+        </div>
+        <!-- INVOICES -->
+        ${invCount?`<div class="inv-wrap">${(w.invoices||[]).map(inv=>{
+          const pd=(inv.payments||[]).reduce((s,p)=>s+p.amount,0);
+          const bal=inv.amount-pd;
+          const done=bal<=0;
+          return `<div class="inv-item ${done?'paid':''}">
+            <div class="inv-left">
+              <div class="inv-name">${inv.service}</div>
+              <div class="inv-date">📅 ${inv.date}</div>
+              ${inv.note?`<div class="inv-note">📝 ${inv.note}</div>`:''}
+              ${(inv.payments||[]).map(p=>`<div style="font-size:10px;color:var(--gr);margin-top:2px">✅ ${fmt(p.amount)} · ${p.method} · ${p.date}</div>`).join('')}
+            </div>
+            <div class="inv-right">
+              <div class="inv-amt">${fmt(inv.amount)}</div>
+              ${pd>0?`<div class="inv-paid">已付 ${fmt(pd)}</div>`:''}
+              ${bal>0?`<div class="inv-bal">欠 ${fmt(bal)}</div>`:`<div style="font-size:10px;color:var(--gr)">✅ 已结清</div>`}
+              <div class="inv-actions">
+                ${bal>0?`<button class="ia pay" onclick="openPayModal(${w.id},${inv.id})">收款</button>`:''}
+                <button class="ia del" onclick="delInv(${w.id},${inv.id})">✕</button>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}</div>`:''}
+        <!-- ACTIONS -->
+        <div class="wacts">
+          <a class="wact wa-call" href="tel:+6${tel}">📞 致电</a>
+          <a class="wact wa-wa" href="https://wa.me/6${tel}" target="_blank">💬 WA</a>
+          <button class="wact wa-inv" onclick="openInvForm(${w.id})">➕ 开单</button>
+        </div>
+        <!-- WORKER INFO -->
+        <div class="wgrid">
+          <div class="wfield"><div class="wflabel">护照号</div><div class="wfval">${w.passportNo||'-'}</div></div>
+          <div class="wfield"><div class="wflabel">国籍</div><div class="wfval">${w.nationality||'-'}</div></div>
+          <div class="wfield"><div class="wflabel">地点</div><div class="wfval">${w.location||'-'}</div></div>
+          <div class="wfield"><div class="wflabel">类别</div><div class="wfval">${w.sector||'-'}</div></div>
+          ${(w.projects||[]).length?`<div class="wfield" style="grid-column:1/-1"><div class="wflabel">项目</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:3px">${(w.projects||[]).map(p=>`<span class="bd b-pu">${p}</span>`).join('')}</div></div>`:''}
+        </div>
+        <!-- DOCS -->
+        <div class="doc-list">
+          <div class="doc-title">文件状态</div>
+          ${docHtml}
+        </div>
+        <div class="wacts" style="padding-top:0">
+          <button class="wact wa-edit" onclick="openWForm(${w.id})">✏️ 编辑</button>
+          <button class="wact wa-del" onclick="delW(${w.id})">🗑️ 删除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleW(id){ document.getElementById('wb'+id)?.classList.toggle('open'); }
+function delW(id){ if(!confirm('确定删除？')) return; S.workers=S.workers.filter(x=>x.id!==id); sv(); renderW(); updPill(); }
+
+// ═══════════ INVOICE FORM ═══════════
+function openInvForm(wid){
+  const w=S.workers.find(x=>x.id===wid); if(!w) return;
+  document.getElementById('mt').textContent=`➕ 开单 — ${w.name}`;
+  document.getElementById('mbody').innerHTML=`
+    <div><span class="lbl">选择服务项目</span>
+    <div class="fee-grid">${FEES.map((f,i)=>`
+      <div class="fee-btn" id="fb${i}" onclick="selFee(${i},${wid})">
+        <div class="fee-btn-name">${f.name}</div>
+        <div class="fee-btn-price">${fmt(f.price)}</div>
+      </div>`).join('')}</div></div>
+    <div><span class="lbl">或自定义</span></div>
+    <div><span class="lbl">服务名称</span><input class="inp" id="if_svc" placeholder="自定义服务"></div>
+    <div><span class="lbl">金额 (RM)</span><input class="inp" id="if_amt" type="number" placeholder="0.00"></div>
+    <div><span class="lbl">备注</span><input class="inp" id="if_note" placeholder="可选"></div>
+    <div><span class="lbl">付款方式（如已部分/全付）</span>
+      <select class="inp" id="if_pay"><option value="">未付</option><option>现金</option><option>TNG</option><option>转账</option><option>扣薪</option></select></div>
+    <div><span class="lbl">预付金额（如有）</span><input class="inp" id="if_prepay" type="number" placeholder="0" value="0"></div>
+    <div class="mbtns">
+      <button class="mbtn" onclick="cM()">取消</button>
+      <button class="mbtn pri" onclick="saveInv(${wid})">✅ 开单</button>
+    </div>`;
+  oM();
+}
+
+function selFee(i,wid){
+  document.querySelectorAll('.fee-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('fb'+i)?.classList.add('sel');
+  document.getElementById('if_svc').value=FEES[i].name;
+  document.getElementById('if_amt').value=FEES[i].price;
+}
+
+function saveInv(wid){
+  const svc=document.getElementById('if_svc').value.trim();
+  const amt=parseFloat(document.getElementById('if_amt').value)||0;
+  if(!svc||!amt){ alert('请填写服务和金额'); return; }
+  const note=document.getElementById('if_note').value.trim();
+  const payM=document.getElementById('if_pay').value;
+  const prepay=parseFloat(document.getElementById('if_prepay').value)||0;
+  const inv={id:S.nextId++, service:svc, amount:amt, date:today(), note, payments:[]};
+  if(prepay>0&&payM){ inv.payments.push({id:S.nextId++,amount:prepay,date:today(),method:payM}); }
+  const w=S.workers.find(x=>x.id===wid);
+  if(!w.invoices) w.invoices=[];
+  w.invoices.push(inv);
+  // Log to txns
+  S.txns.push({id:S.nextId++,date:today(),wid,wname:w.name,type:'invoice',service:svc,amount:amt});
+  sv(); cM(); renderW(); updPill();
+}
+
+// ═══════════ PAYMENT MODAL ═══════════
+function openPayModal(wid,invId){
+  const w=S.workers.find(x=>x.id===wid);
+  const inv=(w?.invoices||[]).find(x=>x.id===invId);
+  if(!inv) return;
+  const pd=(inv.payments||[]).reduce((s,p)=>s+p.amount,0);
+  const bal=inv.amount-pd;
+  document.getElementById('mt').textContent=`💰 收款 — ${w.name}`;
+  document.getElementById('mbody').innerHTML=`
+    <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:4px">
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">${inv.service}</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px">
+        <span style="color:var(--tx2)">账单金额</span><span style="font-weight:700">${fmt(inv.amount)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:4px">
+        <span style="color:var(--tx2)">已付</span><span style="color:var(--gr);font-weight:700">${fmt(pd)}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:4px;font-weight:700">
+        <span>欠款</span><span style="color:var(--rd)">${fmt(bal)}</span></div>
+    </div>
+    <div><span class="lbl">收款金额 (RM)</span>
+      <input class="inp" id="pay_amt" type="number" placeholder="${bal.toFixed(2)}" value="${bal.toFixed(2)}"></div>
+    <div><span class="lbl">付款方式</span>
+      <select class="inp" id="pay_m"><option>现金</option><option>TNG</option><option>转账</option><option>扣薪</option></select></div>
+    <div><span class="lbl">备注</span><input class="inp" id="pay_note" placeholder="可选"></div>
+    <div class="mbtns">
+      <button class="mbtn" onclick="cM()">取消</button>
+      <button class="mbtn pri" onclick="savePay(${wid},${invId})">✅ 确认收款</button>
+    </div>`;
+  oM();
+}
+
+function savePay(wid,invId){
+  const amt=parseFloat(document.getElementById('pay_amt').value)||0;
+  const method=document.getElementById('pay_m').value;
+  if(!amt){ alert('请填写金额'); return; }
+  const w=S.workers.find(x=>x.id===wid);
+  const inv=(w?.invoices||[]).find(x=>x.id===invId);
+  if(!inv) return;
+  if(!inv.payments) inv.payments=[];
+  inv.payments.push({id:S.nextId++,amount:amt,date:today(),method});
+  S.txns.push({id:S.nextId++,date:today(),wid,wname:w.name,type:'payment',method,amount:amt});
+  sv(); cM(); renderW(); updPill();
+}
+
+function delInv(wid,invId){
+  if(!confirm('删除此账单？')) return;
+  const w=S.workers.find(x=>x.id===wid);
+  if(w) w.invoices=(w.invoices||[]).filter(x=>x.id!==invId);
+  sv(); renderW(); updPill();
+}
+
+// ═══════════ WORKER FORM ═══════════
+function openWForm(id){
+  const w=id?S.workers.find(x=>x.id===id):null;
+  const gd=n=>(w?.docs||[]).find(d=>d.name===n)||{};
+  document.getElementById('mt').textContent=w?'✏️ 编辑外劳':'➕ 添加外劳';
+  document.getElementById('mbody').innerHTML=`
+    <div><span class="lbl">姓名 *</span><input class="inp" id="wf_n" value="${w?.name||''}"></div>
+    <div class="row">
+      <div class="fc"><span class="lbl">血型</span><input class="inp" id="wf_b" value="${w?.blood||''}" placeholder="O+"></div>
+      <div class="fc"><span class="lbl">国籍</span><input class="inp" id="wf_nat" value="${w?.nationality||''}" placeholder="Bangladesh"></div>
+    </div>
+    <div><span class="lbl">联络号码</span><input class="inp" id="wf_ph" value="${w?.phone||''}" type="tel" placeholder="0126741188"></div>
+    <div><span class="lbl">护照号码</span><input class="inp" id="wf_pp" value="${w?.passportNo||''}" placeholder="A25649873"></div>
+    <div class="row">
+      <div class="fc"><span class="lbl">护照逾期</span><input class="inp" id="wf_ppe" type="date" value="${gd('Pasport').expiry||''}"></div>
+      <div class="fc"><span class="lbl">准证逾期</span><input class="inp" id="wf_pe" type="date" value="${gd('Permit').expiry||''}"></div>
+    </div>
+    <div class="row">
+      <div class="fc"><span class="lbl">FOMEMA 逾期</span><input class="inp" id="wf_fe" type="date" value="${gd('FOMEMA').expiry||''}"></div>
+      <div class="fc"><span class="lbl">Insurance 逾期</span><input class="inp" id="wf_ie" type="date" value="${gd('Insurance').expiry||''}"></div>
+    </div>
+    <div class="row">
+      <div class="fc"><span class="lbl">地点</span><input class="inp" id="wf_loc" value="${w?.location||''}" placeholder="Bertam"></div>
+      <div class="fc"><span class="lbl">类别</span>
+        <select class="inp" id="wf_sec">
+          <option value="AGRO" ${w?.sector==='AGRO'?'selected':''}>AGRO</option>
+          <option value="Other" ${w?.sector==='Other'?'selected':''}>Other</option>
+          <option value="Construction" ${w?.sector==='Construction'?'selected':''}>Construction</option>
+          <option value="Manufacturing" ${w?.sector==='Manufacturing'?'selected':''}>Manufacturing</option>
+        </select>
+      </div>
+    </div>
+    <div><span class="lbl">曾经项目（逗号分隔）</span><input class="inp" id="wf_proj" value="${(w?.projects||[]).join(', ')}" placeholder="FOMEMA SETTING, CIDB"></div>
+    <div><span class="lbl">备注</span><input class="inp" id="wf_notes" value="${w?.notes||''}"></div>
+    <div class="mbtns">
+      <button class="mbtn" onclick="cM()">取消</button>
+      <button class="mbtn pri" onclick="saveW(${id||'null'})">✅ 保存</button>
+    </div>`;
+  oM();
+}
+
+function saveW(id){
+  const name=document.getElementById('wf_n').value.trim();
+  if(!name){ alert('请输入姓名'); return; }
+  const ppe=document.getElementById('wf_ppe').value;
+  const pe=document.getElementById('wf_pe').value;
+  const fe=document.getElementById('wf_fe').value;
+  const ie=document.getElementById('wf_ie').value;
+  const proj=document.getElementById('wf_proj').value;
+  const data={
+    name, ini:name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase(),
+    blood:document.getElementById('wf_b').value.trim(),
+    phone:document.getElementById('wf_ph').value.trim(),
+    passportNo:document.getElementById('wf_pp').value.trim(),
+    nationality:document.getElementById('wf_nat').value.trim(),
+    location:document.getElementById('wf_loc').value.trim(),
+    sector:document.getElementById('wf_sec').value,
+    notes:document.getElementById('wf_notes').value.trim(),
+    projects:proj?proj.split(',').map(x=>x.trim()).filter(Boolean):[],
+    status:'active',
+    docs:[
+      {name:'Pasport',  icon:'🛂', expiry:ppe},
+      {name:'Permit',   icon:'📄', expiry:pe},
+      {name:'FOMEMA',   icon:'🏥', expiry:fe},
+      {name:'Insurance',icon:'🛡️', expiry:ie},
+    ],
+  };
+  if(id){ const i=S.workers.findIndex(x=>x.id===id); if(i>=0){ data.id=id; data.invoices=S.workers[i].invoices||[]; data.joinDate=S.workers[i].joinDate; S.workers[i]=data; } }
+  else { data.id=S.nextId++; data.joinDate=today(); data.invoices=[]; S.workers.push(data); }
+  sv(); cM(); renderW(); updPill();
+}
+
+// ═══════════ ALERTS ═══════════
+function renderAlerts(){
+  const items=[];
+  S.workers.forEach(w=>{
+    // Debt alerts
+    const {balance}=invTotals(w);
+    if(balance>0){
+      const oldest=(w.invoices||[]).filter(inv=>{ const pd=(inv.payments||[]).reduce((s,p)=>s+p.amount,0); return pd<inv.amount; }).sort((a,b)=>a.date.localeCompare(b.date))[0];
+      items.push({type:'debt',w,balance,oldest});
+    }
+    // Doc alerts
+    w.docs.forEach(d=>{
+      const ds=docSt(d.expiry);
+      const days=daysUntil(d.expiry);
+      if(ds==='exp'||ds==='warn') items.push({type:ds,w,doc:d,days});
+    });
+  });
+  items.sort((a,b)=>{
+    const rank={exp:0,debt:1,warn:2};
+    return (rank[a.type]||3)-(rank[b.type]||3);
+  });
+  const c=document.getElementById('alertList');
+  if(!items.length){ c.innerHTML='<div style="text-align:center;padding:40px;color:var(--tx2);font-size:13px">✅ 暂无需处理事项</div>'; return; }
+  c.innerHTML=items.map(it=>{
+    const tel=(it.w.phone||'').replace(/[^0-9]/g,'');
+    if(it.type==='debt'){
+      return `<div class="ac debt">
+        <div class="ac-ico">💸</div>
+        <div style="flex:1">
+          <div class="ac-title">${it.w.name} — 欠款未结清</div>
+          <div class="ac-desc">共欠 <strong style="color:var(--rd)">${fmt(it.balance)}</strong>${it.oldest?` · 最早账单：${it.oldest.service} (${it.oldest.date})`:''}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:7px">
+            <a class="wact wa-wa" href="https://wa.me/6${tel}" target="_blank" style="padding:5px 12px;font-size:11px">💬 催款</a>
+            <button class="wact wa-inv" onclick="goTab(1)" style="padding:5px 12px;font-size:11px;background:rgba(245,166,35,.15);color:var(--or);border:1px solid var(--bo)">查看账单</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    let feeNote='';
+    if(it.doc.name==='Permit'&&it.type==='exp'){
+      const d=Math.abs(it.days);
+      if(d<=3) feeNote='💸 ESP: RM150';
+      else if(d<=90) feeNote=`💸 ESP: RM${(d*50).toLocaleString()} (${d}天×RM50)`;
+      else feeNote='💸 ESP: RM3,100 + RM1,500';
+    }
+    if(it.doc.name==='Permit'&&it.type==='warn'&&it.days<=3) feeNote='💸 即将触发 ESP RM150';
+    return `<div class="ac ${it.type==='exp'?'':'warn'}">
+      <div class="ac-ico">${it.type==='exp'?'🚨':'⏰'}</div>
+      <div style="flex:1">
+        <div class="ac-title">${it.w.name} — ${it.doc.name}</div>
+        <div class="ac-desc">${it.type==='exp'?`已过期 ${Math.abs(it.days)} 天`:`还有 ${it.days} 天到期`} · ${it.doc.expiry}</div>
+        ${feeNote?`<div class="ac-fee">${feeNote}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:7px">
+          <a class="wact wa-wa" href="https://wa.me/6${tel}" target="_blank" style="padding:5px 12px;font-size:11px">💬 联系</a>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════ STATS ═══════════
+function renderStats(){
+  let totalBilled=0,totalPaid=0;
+  S.workers.forEach(w=>{ const t=invTotals(w); totalBilled+=t.billed; totalPaid+=t.paid; });
+  document.getElementById('stW').textContent=S.workers.length;
+  document.getElementById('stR').textContent=fmt(totalBilled);
+  document.getElementById('stP').textContent=fmt(totalPaid);
+  document.getElementById('stD').textContent=fmt(totalBilled-totalPaid);
+
+  // Debt list
+  const debtors=S.workers.map(w=>({w,b:invTotals(w).balance})).filter(x=>x.b>0).sort((a,b)=>b.b-a.b);
+  document.getElementById('debtList').innerHTML=debtors.length?
+    debtors.map(({w,b})=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--bo2)">
+      <div><div style="font-size:12px;font-weight:600">${w.name}</div><div style="font-size:10px;color:var(--tx2)">${w.phone||'-'}</div></div>
+      <span style="font-size:13px;font-weight:700;color:var(--rd)">${fmt(b)}</span>
+    </div>`).join('') :
+    '<div style="font-size:12px;color:var(--tx2);text-align:center;padding:10px">✅ 无欠款</div>';
+
+  // Upcoming docs 90 days
+  const upcom=[];
+  S.workers.forEach(w=>{ w.docs.forEach(d=>{ const days=daysUntil(d.expiry); if(days!==null&&days>=0&&days<=90) upcom.push({name:w.name,doc:d.name,days,exp:d.expiry}); }); });
+  upcom.sort((a,b)=>a.days-b.days);
+  document.getElementById('docExp').innerHTML=upcom.length?
+    upcom.map(u=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--bo2)">
+      <div><div style="font-size:12px;font-weight:600">${u.name}</div><div style="font-size:10px;color:var(--tx2)">${u.doc} · ${u.exp}</div></div>
+      <span class="bd ${u.days<30?'b-exp':'b-warn'}">${u.days}天后</span>
+    </div>`).join('') :
+    '<div style="font-size:12px;color:var(--tx2);text-align:center;padding:10px">✅ 90天内无文件到期</div>';
+}
+
+// ═══════════ PERMIT CALC ═══════════
+function setPT(t){
+  document.getElementById('ca').classList.toggle('on',t==='AGRO');
+  document.getElementById('co').classList.toggle('on',t==='OTHER');
+  const levy=t==='AGRO'?845:1850;
+  const sub=levy+205+203.5+250+350;
+  const sst=sub*0.06;
+  document.getElementById('pL').textContent=`RM ${levy.toFixed(2)}`;
+  document.getElementById('pS').textContent=`RM ${sub.toFixed(2)}`;
+  document.getElementById('pST').textContent=`RM ${sst.toFixed(2)}`;
+  document.getElementById('pT').textContent=`RM ${(sub+sst).toFixed(2)}`;
+}
+
+// ═══════════ CHAT ═══════════
+let pendingCat=null;
+function initChat(){
+  document.getElementById('cw').innerHTML='';
+  botMsg(`嗨！帮你记录收款 😊\n\n💰「收 Ahmad FOMEMA 1500 现金」\n💰「收 Ramu 准证 2000 转账」\n💰「收 Mohamed 现金 300」\n✏️「改」修改上一条\n🗑️「删除」删除上一条`);
+}
+function botMsg(txt,chips){
+  const cw=document.getElementById('cw');
+  const d=document.createElement('div'); d.className='msg bot';
+  d.innerHTML=`<div>${txt.replace(/\n/g,'<br>')}</div><div class="msg-t">${now12()}</div>`;
+  if(chips?.length){ const ch=document.createElement('div'); ch.className='chips'; chips.forEach(c=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=c; b.onclick=()=>pickCat(c); ch.appendChild(b); }); d.appendChild(ch); }
+  cw.appendChild(d); scrollC();
+}
+function userMsg(txt){ const cw=document.getElementById('cw'); const d=document.createElement('div'); d.className='msg user'; d.innerHTML=`<div>${txt}</div><div class="msg-t">${now12()}</div>`; cw.appendChild(d); scrollC(); }
+function showTyp(){ const cw=document.getElementById('cw'); const d=document.createElement('div'); d.className='msg bot'; d.id='typ'; d.innerHTML='<div class="typing"><span></span><span></span><span></span></div>'; cw.appendChild(d); scrollC(); }
+function hideTyp(){ document.getElementById('typ')?.remove(); }
+function scrollC(){ setTimeout(()=>{ document.getElementById('area').scrollTop=99999; },40); }
+
+async function send(){
+  const inp=document.getElementById('cin'); const txt=inp.value.trim(); if(!txt) return;
+  inp.value=''; userMsg(txt);
+  const l=txt.toLowerCase();
+  if(l==='删除') { delLastTxn(); return; }
+  if(l==='改') { editLastTxn(); return; }
+  showTyp();
+  try{ const r=await aiClass(txt); hideTyp(); handleAI(r,txt); }
+  catch(e){ hideTyp(); handleAI(simpleClass(txt),txt); }
+}
+
+async function aiClass(txt){
+  const wnames=S.workers.map(w=>w.name).join(', ');
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+      messages:[{role:'user',content:`你是外劳人力资源公司收款记录助手。
+外劳名单: ${wnames}
+用户输入: "${txt}"
+分析返回JSON（只JSON）:
+{"wname":"外劳姓名或空","service":"服务项目","amount":数字,"method":"现金"|"TNG"|"转账"|"扣薪","confident":true|false}
+服务参考: FOMEMA,准证更新,ESP逾期,CIDB,文件费,Insurance,保险,部门文件,亲属文件,家属证,KWSP,其他`}]})});
+  const data=await resp.json();
+  return JSON.parse(data.content.map(c=>c.text||'').join('').replace(/```json|```/g,'').trim());
+}
+function simpleClass(txt){
+  const nums=txt.match(/[\d,]+\.?\d*/g);
+  const amount=nums?parseFloat(nums[nums.length-1].replace(',','')):0;
+  const methods=['现金','tng','转账','扣薪'];
+  const method=methods.find(m=>txt.toLowerCase().includes(m))||'现金';
+  return {wname:'',service:'其他',amount,method,confident:false};
+}
+function handleAI(r,raw){
+  if(!r.amount){ botMsg('🤔 没找到金额，请重试，例如："收 Ahmad FOMEMA 1500 现金"'); return; }
+  if(!r.confident||!r.wname){
+    pendingCat={...r,raw};
+    const chips=['现金','TNG','转账','扣薪'];
+    if(!r.wname){
+      const wchips=S.workers.map(w=>w.name);
+      botMsg(`收款 RM${r.amount.toFixed(2)} · ${r.service}\n这是哪位外劳的付款？`,wchips);
+    } else {
+      botMsg(`🤔「${r.wname}」${r.service} RM${r.amount.toFixed(2)}\n付款方式？`,chips);
+    }
+  } else {
+    logTxn(r); botMsg(`✅ 已记录 ${r.wname} · ${r.service} · ${fmt(r.amount)} · ${r.method}`);
+  }
+}
+function pickCat(val){
+  document.querySelectorAll('.chips').forEach(c=>c.remove());
+  if(!pendingCat) return;
+  const isWorker=S.workers.some(w=>w.name===val);
+  if(!pendingCat.wname&&isWorker){ pendingCat.wname=val; botMsg(`付款方式？`,['现金','TNG','转账','扣薪']); return; }
+  if(['现金','TNG','转账','扣薪'].includes(val)){ pendingCat.method=val; }
+  logTxn(pendingCat);
+  botMsg(`✅ 已记录 ${pendingCat.wname||'?'} · ${pendingCat.service} · ${fmt(pendingCat.amount)} · ${pendingCat.method}`);
+  pendingCat=null;
+}
+function logTxn(r){
+  S.txns.push({id:S.nextId++,date:today(),wname:r.wname,service:r.service,amount:r.amount,method:r.method});
+  sv();
+}
+function delLastTxn(){ if(!S.txns.length){botMsg('没有记录~');return;} const l=S.txns.pop(); sv(); botMsg(`🗑️ 已删除：${l.wname} ${l.service} ${fmt(l.amount)}`); }
+function editLastTxn(){ botMsg('✏️ 请重新输入，我会替换上一条：'); if(S.txns.length) S.txns.pop(); sv(); }
+
+// ═══════════ MODAL ═══════════
+function oM(){ document.getElementById('mo').classList.add('open'); }
+function cM(){ document.getElementById('mo').classList.remove('open'); }
+function cMOut(e){ if(e.target===document.getElementById('mo')) cM(); }
+
+// ═══════════ INIT ═══════════
+window.addEventListener('DOMContentLoaded',()=>{
+  if(!S.workers) S.workers=[];
+  if(!S.txns) S.txns=[];
+  S.workers.forEach(w=>{ if(!w.invoices) w.invoices=[]; });
+  initChat(); updPill();
+});
+</script>
+</body>
+</html>
